@@ -6,7 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
-
+// encapsulamento da conexao
 public class DAO<E> {
 	private static EntityManagerFactory emf;
 	private EntityManager em;
@@ -23,7 +23,7 @@ public class DAO<E> {
 		this(null);
 	}
 	// toda vez que for criado um DAO , sera estabelicida a conexao
-	// recebe como parametro a Entidade que é uma classe.
+	// recebe como parametro a Entidade que ï¿½ uma classe.
 	public DAO(Class<E> classe) {
 		this.classe = classe;
 		em = emf.createEntityManager();
@@ -40,6 +40,15 @@ public class DAO<E> {
 	public DAO<E> incluir(E entidade){
 		em.persist(entidade);
 		return this;
+	}
+	public DAO<E> fechar(){
+		em.close();
+		emf.close();
+		return this;
+		
+	}
+	public E obterPorID(Object id){
+		return em.find(classe, id);
 	}
 	
 	public List<E> obterTodos(int limite, int deslocamento){
@@ -60,5 +69,23 @@ public class DAO<E> {
 		}
 		em.remove(em.find(classe, ID));
 	}
+	
+	public List<E> consultar(String nomeConsulta , Object...params){
+		TypedQuery<E> query = em.createNamedQuery(nomeConsulta, classe);
+		
+		for(int i = 0 ; i<params.length ; i+=2) {
+			query.setParameter(params[i].toString(), params[i+1]);
+		}
+		
+		return query.getResultList();
+	}public E consultarUm(String nomeConsulta , Object...params){
+		List<E> lista = consultar(nomeConsulta, params);
+		return lista.isEmpty() ? null : lista.get(0);
+		
+		
+	}
+	
+	
+	
 	
 }
